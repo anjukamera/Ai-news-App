@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI द्वारा संचालित नवीनतम हिंदी समाचार ऐप। राजनीति, खेल, मनोरंजन, और दुनिया भर की ताज़ा खबरें पाएं।">
+    <meta name="keywords" content="hindi news, latest news, breaking news, news app, india news, हिंदी समाचार, ताज़ा खबरें">
+    <title>AI News App - ताज़ा खबरें</title>
+    
+    <style>
+        /* --- CSS Reset & Global Styles --- */
+        :root {
+            --primary-color: #007bff;
+            --primary-hover: #0056b3;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --border-radius: 12px;
+            --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --shadow-strong: 0 6px 20px rgba(0, 0, 0, 0.15);
+            --transition-speed: 0.3s;
+        }
+
+        /* Light Theme (Default) */
+        :root {
+            --bg-primary: #f4f7f9;
+            --bg-secondary: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --border-color: #e0e0e0;
+        }
+
+        /* Dark Theme */
+        body[data-theme="dark"] {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --border-color: #333333;
+            --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.3);
+            --shadow-strong: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        /* --- Header & Theme Toggle --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background-color: var(--bg-secondary);
+            box-shadow: var(--shadow-light);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: background-color var(--transition-speed);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+        }
+
+        .theme-switch {
+            display: flex;
+            align-items: center;
+        }
+
+        .theme-switch-label {
+            margin-right: 10px;
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: var(--transition-speed);
+            border-radius: 26px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: var(--transition-speed);
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        /* --- Category Navigation --- */
+        nav {
+            padding: 1rem 0;
+            background-color: var(--bg-secondary);
+            transition: background-color var(--transition-speed);
+        }
+
+        .category-container {
+            display: flex;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .category-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .category-btn {
+            white-space: nowrap;
+            padding: 0.5rem 1rem;
+            margin: 0 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            background-color: transparent;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+
+        .category-btn:first-child { margin-left: 0; }
+        .category-btn:last-child { margin-right: 0; }
+        
+        .category-btn:hover {
+            background-color: var(--primary-hover);
+            color: white;
+            border-color: var(--primary-hover);
+        }
+
+        .category-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* --- News Grid & Cards --- */
+        #news-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            padding: 1.5rem 0;
+        }
+
+        .news-card {
+            background-color: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-light);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+        }
+
+        .news-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-strong);
+        }
+
+        .news-image-container {
+             width: 100%;
+             height: 200px;
+             background-color: var(--border-color);
+             display: flex;
+             align-items: center;
+             justify-content: center;
+        }
+
+        .news-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .news-card img.lazy {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .news-card img.loaded {
+            opacity: 1;
+        }
+
+        .news-content {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .news-title {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .news-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            flex-grow: 1;
+            margin-bottom: 1rem;
+        }
+        
+        .news-meta {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 1rem;
+        }
+
+        .read-more-btn {
+            display: inline-block;
+            align-self: flex-start;
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color var(--transition-speed);
+        }
+
+        .read-more-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* --- Loading Spinner --- */
+        .spinner-container {
+            display: none; /* Initially hidden */
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 0;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--border-color);
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- Error Message --- */
+        .error-message {
+            text-align: center;
+            padding: 2rem;
+            background-color: var(--bg-secondary);
+            color: #d9534f;
+            border-radius: var(--border-radius);
+            margin: 2rem 0;
+            border: 1px solid #d9534f;
+        }
+
+        /* --- Scroll to Top Button --- */
+        #scrollToTopBtn {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 99;
+            border: none;
+            outline: none;
+            background-color: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            padding: 15px;
+            border-radius: 50%;
+            font-size: 18px;
+            width: 50px;
+            height: 50px;
+            box-shadow: var(--shadow-strong);
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s;
+            visibility: hidden;
+        }
+
+        #scrollToTopBtn.show {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body data-theme="light">
+
+    <header>
+        <h1>AI News</h1>
+        <div class="theme-switch">
+            <span class="theme-switch-label" id="theme-label">Light Mode</span>
+            <label class="switch">
+                <input type="checkbox" id="theme-toggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </header>
+
+    <main class="container">
+        <nav>
+            <div class="category-container" id="category-bar">
+                <!-- Category buttons will be injected here by JavaScript -->
+            </div>
+        </nav>
+        
+        <div class="spinner-container" id="spinner">
+            <div class="spinner"></div>
+        </div>
+
+        <section id="news-container">
+            <!-- News cards will be injected here by JavaScript -->
+        </section>
+    </main>
+
+    <button id="scrollToTopBtn" title="Go to top">▲</button>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- API & State Management ---
+        const API_KEY = '1eafd226bcea2d4b871dfd875c47be09';
+        const newsContainer = document.getElementById('news-container');
+        const spinner = document.getElementById('spinner');
+        const categoryBar = document.getElementById('category-bar');
+
+        const categories = [
+            { id: 'general', name: 'प्रमुख खबरें' },
+            { id: 'nation', name: 'राष्ट्रीय' },
+            { id: 'world', name: 'विश्व' },
+            { id: 'business', name: 'व्यापार' },
+            { id: 'technology', name: 'टेक' },
+            { id: 'entertainment', name: 'मनोरंजन' },
+            { id: 'sports', name: 'खेल' },
+            { id: 'science', name: 'विज्ञान' },
+            { id: 'health', name: 'स्वास्थ्य' },
+        ];
+        let currentCategory = 'general';
+
+        // --- News Fetching & Display ---
+        const fetchNews = async (category) => {
+            newsContainer.innerHTML = '';
+            spinner.style.display = 'flex';
+            
+            const apiUrl = `https://gnews.io/api/v4/top-headlines?category=${category}&lang=hi&country=in&apikey=${API_KEY}`;
+            
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                         throw new Error('API Key अमान्य है। कृपया अपनी API Key जांचें।');
+                    }
+                     if (response.status === 429) {
+                         throw new Error('आप API अनुरोध सीमा तक पहुंच गए हैं। बाद में पुन: प्रयास करें।');
+                    }
+                    throw new Error(`API से त्रुटि: ${response.statusText} (${response.status})`);
+                }
+
+                const data = await response.json();
+                const articles = data.articles;
+
+                if (!articles || articles.length === 0) {
+                    displayError(`इस श्रेणी में कोई समाचार नहीं मिला।`);
+                    return;
+                }
+
+                displayNews(articles);
+
+            } catch (error) {
+                console.error('समाचार लाने में विफल:', error);
+                displayError('समाचार लोड करने में असमर्थ। कृपया अपना इंटरनेट कनेक्शन जांचें या बाद में प्रयास करें।');
+            } finally {
+                spinner.style.display = 'none';
+            }
+        };
+
+        const displayNews = (articles) => {
+            newsContainer.innerHTML = ''; // Clear previous news
+            articles.forEach(article => {
+                const newsCard = document.createElement('article');
+                newsCard.className = 'news-card';
+
+                const truncatedDescription = article.description ? article.description.substring(0, 100) + '...' : 'कोई विवरण उपलब्ध नहीं है।';
+                const date = new Date(article.publishedAt).toLocaleString('hi-IN', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+
+                // Fallback image
+                const imageUrl = article.image || `https://via.placeholder.com/400x200.png?text=News`;
+
+                newsCard.innerHTML = `
+                    <div class="news-image-container">
+                        <img data-src="${imageUrl}" alt="${article.title}" class="lazy">
+                    </div>
+                    <div class="news-content">
+                        <h2 class="news-title">${article.title}</h2>
+                        <p class="news-description">${truncatedDescription}</p>
+                        <p class="news-meta">${date}</p>
+                        <a href="${article.url}" target="_blank" rel="noopener noreferrer" class="read-more-btn">और पढ़ें</a>
+                    </div>
+                `;
+                newsContainer.appendChild(newsCard);
+            });
+            setupLazyLoading();
+        };
+
+        const displayError = (message) => {
+            newsContainer.innerHTML = `<div class="error-message"><h3>เกิดข้อผิดพลาด</h3><p>${message}</p></div>`;
+        };
+
+        // --- Category Management ---
+        const createCategoryButtons = () => {
+            categories.forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'category-btn';
+                button.textContent = category.name;
+                button.dataset.category = category.id;
+                if (category.id === currentCategory) {
+                    button.classList.add('active');
+                }
+                button.addEventListener('click', () => handleCategoryClick(category.id, button));
+                categoryBar.appendChild(button);
+            });
+        };
+
+        const handleCategoryClick = (category, clickedButton) => {
+            if (currentCategory === category) return;
+            currentCategory = category;
+
+            // Update active state
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            clickedButton.classList.add('active');
+
+            fetchNews(currentCategory);
+        };
+
+
+        // --- Lazy Loading Images ---
+        const setupLazyLoading = () => {
+            const lazyImages = document.querySelectorAll('img.lazy');
+            if ("IntersectionObserver" in window) {
+                let lazyImageObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            let lazyImage = entry.target;
+                            lazyImage.src = lazyImage.dataset.src;
+                            lazyImage.classList.remove('lazy');
+                            lazyImage.classList.add('loaded');
+                            lazyImageObserver.unobserve(lazyImage);
+                        }
+                    });
+                });
+
+                lazyImages.forEach(lazyImage => {
+                    lazyImageObserver.observe(lazyImage);
+                });
+            } else {
+                // Fallback for older browsers
+                lazyImages.forEach(lazyImage => {
+                    lazyImage.src = lazyImage.dataset.src;
+                });
+            }
+        };
+
+        // --- Theme Toggle ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeLabel = document.getElementById('theme-label');
+        const currentTheme = localStorage.getItem('theme');
+
+        const setTheme = (theme) => {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            if (theme === 'dark') {
+                themeToggle.checked = true;
+                themeLabel.textContent = 'Dark Mode';
+            } else {
+                themeToggle.checked = false;
+                themeLabel.textContent = 'Light Mode';
+            }
+        };
+
+        if (currentTheme) {
+            setTheme(currentTheme);
+        } else {
+            // Check for user's system preference
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            setTheme(prefersDark ? 'dark' : 'light');
+        }
+
+        themeToggle.addEventListener('change', () => {
+            setTheme(themeToggle.checked ? 'dark' : 'light');
+        });
+
+        // --- Scroll to Top Button ---
+        const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+
+        window.onscroll = () => {
+            if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+                scrollToTopBtn.classList.add('show');
+            } else {
+                scrollToTopBtn.classList.remove('show');
+            }
+        };
+
+        scrollToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // --- Initial Load ---
+        const init = () => {
+            createCategoryButtons();
+            fetchNews(currentCategory);
+        };
+
+        init();
+    });
+    </script>
+
+</body>
+</html>
